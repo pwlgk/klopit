@@ -1,0 +1,13 @@
+<!-- app/dashboard/templates/dashboard.html -->
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Панель управления</h1>
+<hr>
+<p>Добро пожаловать, {{ current_user.username }}!</p>
+<p>Это ваша личная панель управления. Здесь скоро появятся ваши проекты и задачи.</p>
+
+<a href="{{ url_for('dashboard.profile') }}" class="btn btn-info">Мой профиль</a>
+{# Ссылки на проекты и т.д. #}
+
+{% endblock %}

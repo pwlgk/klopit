@@ -1,8 +1,10 @@
 # app/auth/forms.py
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, BooleanField, SubmitField
+from wtforms import StringField, PasswordField, BooleanField, SubmitField # Добавили BooleanField
 from wtforms.validators import DataRequired, Email, EqualTo, Length, ValidationError
-from app.models import User # Импортируем модель для проверки уникальности
+from app.models import User
+
+
 
 class RegistrationForm(FlaskForm):
     username = StringField('Имя пользователя',
@@ -32,6 +34,14 @@ class RegistrationForm(FlaskForm):
         if user:
             raise ValidationError('Этот email уже зарегистрирован. Пожалуйста, используйте другой.')
 
-# Форма Логина будет добавлена позже
-# class LoginForm(FlaskForm):
-#     ...
+class LoginForm(FlaskForm):
+    # Можно логиниться по email или username. Сделаем по email для простоты.
+    # Если нужен логин по username, замените Email() на DataRequired()
+    # и поле на username = StringField(...)
+    email = StringField('Email',
+                        validators=[DataRequired(message="Email обязателен."),
+                                    Email(message="Некорректный формат Email.")])
+    password = PasswordField('Пароль',
+                             validators=[DataRequired(message="Пароль обязателен.")])
+    remember_me = BooleanField('Запомнить меня') # Галочка "Запомнить меня"
+    submit = SubmitField('Войти')

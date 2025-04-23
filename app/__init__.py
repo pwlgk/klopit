@@ -20,6 +20,10 @@ def create_app(config_class=Config):
     from app.auth import bp as auth_bp
     app.register_blueprint(auth_bp, url_prefix='/auth')
 
+    from app.dashboard import bp as dashboard_bp
+    app.register_blueprint(dashboard_bp) # Префикс не нужен, т.к. маршруты уже /dashboard, /profile
+
+
     # --- Модуль Главной страницы (если нужен отдельный) ---
     # Пример: создадим простой Blueprint для главной страницы
     from app.main import bp as main_bp
@@ -33,13 +37,12 @@ def create_app(config_class=Config):
     def load_user(user_id):
         return User.query.get(int(user_id))
 
-    # Удаляем старые тестовые маршруты, так как / будет обрабатываться main_bp
-    # @app.route('/')
-    # @app.route('/index') ...
-
+    
     @app.route('/test_base')
     def test_base():
         return render_template('base.html', title='Тест Базы')
+    
+    
 
     return app
 

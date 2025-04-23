@@ -8,25 +8,42 @@
       <div class="collapse navbar-collapse" id="navbarNav">
         <ul class="navbar-nav me-auto mb-2 mb-lg-0">
           <li class="nav-item">
-            <a class="nav-link active" aria-current="page" href="{{ url_for('main.index') }}">Главная</a>
+            <a class="nav-link {% if request.endpoint == 'main.index' %}active{% endif %}" href="{{ url_for('main.index') }}">Главная</a>
           </li>
-          {# Другие пункты меню будут здесь #}
+          {# Ссылка на панель управления появляется, если пользователь вошел #}
+          {% if current_user.is_authenticated %}
+          <li class="nav-item">
+            <a class="nav-link {% if request.endpoint.startswith('dashboard') %}active{% endif %}" href="{{ url_for('dashboard.index') }}">Панель управления</a>
+          </li>
+          {# Ссылка на проекты (появится позже) #}
+          <!--
+          <li class="nav-item">
+            <a class="nav-link {% if request.endpoint.startswith('projects') %}active{% endif %}" href="#">Проекты</a>
+          </li>
+          -->
+          {% endif %}
         </ul>
         <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
            {# Динамическое отображение Войти/Выйти/Профиль #}
            {% if current_user.is_authenticated %}
-               <li class="nav-item">
-                   <a class="nav-link" href="#">{{ current_user.username }}</a> {# Ссылка на профиль позже #}
-               </li>
-               <li class="nav-item">
-                  <a class="nav-link" href="{{ url_for('auth.logout') }}">Выйти</a>
-               </li>
+               {# --- Выпадающее меню для пользователя --- #}
+               <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  {{ current_user.username }}
+                </a>
+                <ul class="dropdown-menu dropdown-menu-end">
+                  <li><a class="dropdown-item" href="{{ url_for('dashboard.profile') }}">Профиль</a></li>
+                  <li><a class="dropdown-item" href="#">Настройки (скоро)</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="{{ url_for('auth.logout') }}">Выйти</a></li>
+                </ul>
+              </li>
            {% else %}
                <li class="nav-item">
-                  <a class="nav-link" href="{{ url_for('auth.login') }}">Войти</a>
+                  <a class="nav-link {% if request.endpoint == 'auth.login' %}active{% endif %}" href="{{ url_for('auth.login') }}">Войти</a>
                </li>
                <li class="nav-item">
-                  <a class="nav-link" href="{{ url_for('auth.register') }}">Регистрация</a>
+                  <a class="nav-link {% if request.endpoint == 'auth.register' %}active{% endif %}" href="{{ url_for('auth.register') }}">Регистрация</a>
                </li>
            {% endif %}
         </ul>
