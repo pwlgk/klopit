@@ -1,0 +1,35 @@
+<!-- app/auth/templates/register.html -->
+{% extends "base.html" %}
+
+{# Импортируем макросы для рендеринга форм (создадим _formhelpers.html позже) #}
+{% import "includes/_formhelpers.html" as forms %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">Регистрация</div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('auth.register') }}" novalidate>
+                        {{ form.hidden_tag() }} {# Обязательно для CSRF защиты #}
+
+                        {# Используем макрос для рендеринга полей #}
+                        {{ forms.render_field(form.username, class="form-control") }}
+                        {{ forms.render_field(form.email, class="form-control") }}
+                        {{ forms.render_field(form.password, class="form-control") }}
+                        {{ forms.render_field(form.password2, class="form-control") }}
+
+                        <div class="d-grid gap-2">
+                             {{ form.submit(class="btn btn-primary") }}
+                        </div>
+                    </form>
+                </div>
+                 <div class="card-footer text-center">
+                     Уже есть аккаунт? <a href="{{ url_for('auth.login') }}">Войти</a>
+                 </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

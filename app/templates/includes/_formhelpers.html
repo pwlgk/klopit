@@ -1,0 +1,19 @@
+{# app/templates/includes/_formhelpers.html - Макрос для рендеринга полей WTForms с Bootstrap #}
+{% macro render_field(field, label_visible=true) -%}
+  <div class="mb-3">
+    {% if label_visible %}
+      {{ field.label(class="form-label") }}
+    {% endif %}
+    {{ field(class_=kwargs.get('class_', '') + (' is-invalid' if field.errors else ''), **kwargs) }}
+    {% if field.errors %}
+      <div class="invalid-feedback">
+        {% for error in field.errors %}
+          <span>{{ error }}</span><br>
+        {% endfor %}
+      </div>
+    {% endif %}
+    {% if field.description %}
+        <small class="form-text text-muted">{{ field.description }}</small>
+    {% endif %}
+  </div>
+{%- endmacro %}

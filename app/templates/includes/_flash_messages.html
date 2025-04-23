@@ -1,0 +1,15 @@
+<!-- app/templates/includes/_flash_messages.html -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    {% for category, message in messages %}
+      {# Преобразуем категорию Flask в класс алерта Bootstrap #}
+      {% set bootstrap_class = 'alert-' + category if category in ['primary', 'secondary', 'success', 'danger', 'warning', 'info', 'light', 'dark'] else 'alert-secondary' %}
+      <div class="container mt-3"> {# Обертка для отступов #}
+          <div class="alert {{ bootstrap_class }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
+      </div>
+    {% endfor %}
+  {% endif %}
+{% endwith %}
