@@ -1,0 +1,44 @@
+<!-- app/projects/templates/project_list.html -->
+{% extends "base.html" %}
+
+{% block content %}
+
+{# --- Заголовок страницы и кнопка действия --- #}
+<div class="d-flex justify-content-between align-items-center mb-4"> {# Увеличили отступ снизу #}
+    <h1><i class="bi bi-briefcase-fill me-2"></i>{{ title }}</h1>
+    {# Кнопка создания доступна всегда для авторизованных #}
+    <a href="{{ url_for('projects.create_project') }}" class="btn btn-success">
+         <i class="bi bi-plus-lg"></i> Создать проект
+    </a>
+</div>
+
+{# --- Список проектов --- #}
+{% if projects %}
+    <div class="list-group shadow-sm"> {# Добавили тень к списку #}
+        {% for project in projects %}
+        {# Ссылка ведет на страницу деталей проекта #}
+        <a href="{{ url_for('projects.view_project', project_id=project.id) }}" class="list-group-item list-group-item-action p-3"> {# Увеличили padding #}
+            <div class="d-flex w-100 justify-content-between">
+                {# Название проекта как основной элемент #}
+                <h5 class="mb-1">{{ project.name }}</h5>
+                {# Дополнительная информация справа (владелец) #}
+                <small class="text-muted">
+                    <i class="bi bi-person-circle"></i> Владелец: {{ project.owner.username }}
+                </small>
+            </div>
+            {# Опционально: Краткое описание или статус (можно убрать для чистоты) #}
+            {# <p class="mb-1 text-muted"><small>{{ project.description|truncate(100) if project.description else 'Нет описания' }}</small></p> #}
+            {# Статус проекта или количество задач можно добавить сюда позже #}
+             <small class="text-muted">Задач: {{ project.tasks.count() }}</small> {# Пример: кол-во задач #}
+        </a>
+        {% endfor %}
+    </div>
+{% else %}
+    {# --- Сообщение, если проектов нет --- #}
+    <div class="alert alert-info mt-3" role="alert">
+      <i class="bi bi-info-circle me-2"></i> У вас пока нет доступных проектов.
+      <a href="{{ url_for('projects.create_project') }}" class="alert-link">Создайте свой первый проект!</a>
+    </div>
+{% endif %}
+
+{% endblock %}

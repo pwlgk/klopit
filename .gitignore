@@ -18,3 +18,5 @@ instance/
 *.log
 *.pot
 *.py[cod]
+uploads
+uploads/*

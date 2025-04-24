@@ -1,0 +1,40 @@
+<!-- app/reports/templates/reports_index.html -->
+{% extends "base.html" %}
+
+{% block content %}
+
+{# --- Заголовок страницы --- #}
+<div class="mb-4"> {# Добавили отступ снизу #}
+    <h1><i class="bi bi-bar-chart-line-fill me-2"></i>{{ title }}</h1>
+    <p class="lead text-muted">Выберите проект для просмотра детального отчета по задачам.</p>
+</div>
+<hr class="mb-4"> {# Линия под заголовком и описанием #}
+
+
+{# --- Список проектов для отчета --- #}
+{% if projects %}
+    <div class="list-group shadow-sm"> {# Добавили тень к списку #}
+        {% for project in projects %}
+        {# Ссылка ведет на страницу отчета по проекту #}
+        <a href="{{ url_for('reports.project_report', project_id=project.id) }}" class="list-group-item list-group-item-action p-3"> {# Увеличили padding #}
+            <div class="d-flex w-100 justify-content-between">
+                 {# Название проекта как основной элемент #}
+                <h5 class="mb-1">{{ project.name }}</h5>
+                {# Дополнительная информация справа (владелец) #}
+                <small class="text-muted">
+                    <i class="bi bi-person-circle"></i> Владелец: {{ project.owner.username }}
+                </small>
+            </div>
+             {# Можно добавить количество задач или другую краткую сводку #}
+             <small class="text-muted">Задач в проекте: {{ project.tasks.count() }}</small>
+        </a>
+        {% endfor %}
+    </div>
+{% else %}
+    {# --- Сообщение, если проектов для отчетов нет --- #}
+    <div class="alert alert-info mt-3" role="alert">
+      <i class="bi bi-info-circle me-2"></i> Нет доступных проектов для просмотра отчетов. Сначала <a href="{{ url_for('projects.create_project') }}" class="alert-link">создайте проект</a> или попросите добавить вас в существующий.
+    </div>
+{% endif %}
+
+{% endblock %}

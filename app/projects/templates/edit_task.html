@@ -1,0 +1,20 @@
+<!-- app/projects/templates/edit_task.html -->
+{% extends "base.html" %}
+
+{% block content %}
+<h2>{{ title }}</h2>
+ <h5 class="text-muted">В проекте: <a href="{{ url_for('projects.view_project', project_id=project.id) }}">{{ project.name }}</a></h5>
+<hr>
+ <div class="row">
+    <div class="col-lg-8">
+        {# 1. Определяем переменные в текущем контексте #}
+        {#    form_action уже должен быть передан из view-функции, #}
+        {#    но для ясности можно переприсвоить или убедиться, что он есть #}
+        {% set form_action = form_action %}
+        {% set cancel_url = url_for('projects.view_project', project_id=project.id) %}
+
+        {# 2. Включаем шаблон, он унаследует form_action и cancel_url #}
+        {% include "_task_form.html" %}
+    </div>
+</div>
+{% endblock %}

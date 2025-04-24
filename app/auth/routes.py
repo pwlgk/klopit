@@ -6,28 +6,33 @@ from app.extensions import db
 from app.auth import bp
 from app.auth.forms import RegistrationForm, LoginForm # Импортируем LoginForm
 from app.models import User
-
+from app.models import User, Role # Убедимся, что Role импортирован, если нужен
 
 @bp.route('/register', methods=['GET', 'POST'])
 def register():
-    # Если пользователь уже вошел в систему, перенаправляем его
     if current_user.is_authenticated:
-        return redirect(url_for('main.index')) # Перенаправляем на главную
+        return redirect(url_for('main.index'))
 
     form = RegistrationForm()
     if form.validate_on_submit():
-        # Если форма валидна при отправке (POST запрос)
+        # При создании User вызовется __init__, который назначит роль 'User'
         user = User(username=form.username.data, email=form.email.data)
-        user.set_password(form.password.data) # Хешируем пароль
-        db.session.add(user)
-        db.session.commit()
-        flash('Поздравляем, вы успешно зарегистрированы!', 'success')
-        # Перенаправляем на страницу входа после успешной регистрации
-        # return redirect(url_for('auth.login')) # Сделаем позже
-        return redirect(url_for('main.index')) # Пока на главную
+        user.set_password(form.password.data)
+        try:
+            db.session.add(user)
+            db.session.commit()
+            flash('Поздравляем, вы успешно зарегистрированы!', 'success')
+            return redirect(url_for('auth.login')) # Лучше на логин после регистрации
+        except Exception as e:
+             db.session.rollback()
+             flash(f'Ошибка при регистрации: {e}', 'danger')
+             print(f"Registration error: {e}")
+             # Здесь может быть полезно проверить, существует ли уже роль 'User'
+             # Role.insert_roles() # Можно вызвать здесь на всякий случай, но лучше через CLI
 
-    # Если GET запрос или форма невалидна, просто отображаем шаблон с формой
     return render_template('register.html', title='Регистрация', form=form)
+
+
 @bp.route('/login', methods=['GET', 'POST'])
 def login():
     # Если пользователь уже вошел, перенаправляем на главную

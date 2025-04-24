@@ -1,52 +1,101 @@
 <!-- app/templates/includes/_navbar.html -->
-<nav class="navbar navbar-expand-lg bg-body-tertiary mb-4" data-bs-theme="dark">
-    <div class="container">
-      <a class="navbar-brand" href="{{ url_for('main.index') }}">Klopit</a>
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
-      </button>
-      <div class="collapse navbar-collapse" id="navbarNav">
-        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+<nav class="navbar navbar-expand-lg bg-dark navbar-dark mb-4"> {# Изменили bg-body-tertiary на bg-dark navbar-dark для лучшего контраста #}
+  <div class="container">
+    {# --- Логотип/Название --- #}
+    <a class="navbar-brand" href="{{ url_for('main.index') }}">
+      <i class="bi bi-clipboard-check"></i> {# Добавили иконку #}
+      Klopit
+    </a>
+
+    {# --- Кнопка "Бургер" для мобильных --- #}
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    {# --- Основное меню (слева) и Меню пользователя (справа) --- #}
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+        {# --- Главная (видна всегда) --- #}
+        <li class="nav-item">
+          <a class="nav-link {% if request.endpoint == 'main.index' %}active{% endif %}" href="{{ url_for('main.index') }}">Главная</a>
+        </li>
+
+        {# --- Ссылки для авторизованных пользователей --- #}
+        {% if current_user.is_authenticated %}
           <li class="nav-item">
-            <a class="nav-link {% if request.endpoint == 'main.index' %}active{% endif %}" href="{{ url_for('main.index') }}">Главная</a>
-          </li>
-          {# Ссылка на панель управления появляется, если пользователь вошел #}
-          {% if current_user.is_authenticated %}
-          <li class="nav-item">
-            <a class="nav-link {% if request.endpoint.startswith('dashboard') %}active{% endif %}" href="{{ url_for('dashboard.index') }}">Панель управления</a>
-          </li>
-          {# Ссылка на проекты (появится позже) #}
-          <!--
-          <li class="nav-item">
-            <a class="nav-link {% if request.endpoint.startswith('projects') %}active{% endif %}" href="#">Проекты</a>
-          </li>
-          -->
-          {% endif %}
-        </ul>
-        <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
-           {# Динамическое отображение Войти/Выйти/Профиль #}
-           {% if current_user.is_authenticated %}
-               {# --- Выпадающее меню для пользователя --- #}
-               <li class="nav-item dropdown">
-                <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                  {{ current_user.username }}
-                </a>
-                <ul class="dropdown-menu dropdown-menu-end">
-                  <li><a class="dropdown-item" href="{{ url_for('dashboard.profile') }}">Профиль</a></li>
-                  <li><a class="dropdown-item" href="#">Настройки (скоро)</a></li>
-                  <li><hr class="dropdown-divider"></li>
-                  <li><a class="dropdown-item" href="{{ url_for('auth.logout') }}">Выйти</a></li>
-                </ul>
-              </li>
-           {% else %}
-               <li class="nav-item">
-                  <a class="nav-link {% if request.endpoint == 'auth.login' %}active{% endif %}" href="{{ url_for('auth.login') }}">Войти</a>
-               </li>
-               <li class="nav-item">
-                  <a class="nav-link {% if request.endpoint == 'auth.register' %}active{% endif %}" href="{{ url_for('auth.register') }}">Регистрация</a>
-               </li>
-           {% endif %}
-        </ul>
-      </div>
-    </div>
-  </nav>
+              {# Выделяем активным, если мы в любом из маршрутов dashboard.* #}
+              <a class="nav-link {% if request.blueprint == 'dashboard' %}active{% endif %}" href="{{ url_for('dashboard.index') }}">Панель управления</a>
+            </li>
+            <li class="nav-item">
+              {# Выделяем активным, если мы в любом из маршрутов projects.* #}
+              <a class="nav-link {% if request.blueprint == 'projects' %}active{% endif %}" href="{{ url_for('projects.list_projects') }}">Проекты</a>
+            </li>
+            <li class="nav-item">
+               {# Выделяем активным, если мы в любом из маршрутов reports.* #}
+              <a class="nav-link {% if request.blueprint == 'reports' %}active{% endif %}" href="{{ url_for('reports.index') }}">Отчеты</a>
+            </li>
+        {% endif %} {# Конец ссылок для авторизованных #}
+      </ul>
+
+      {# --- Меню пользователя (справа) --- #}
+      <ul class="navbar-nav ms-auto mb-2 mb-lg-0 align-items-center">
+         {% if current_user.is_authenticated %}
+             {# --- Блок Уведомлений --- #}
+             <li class="nav-item me-2"> {# Отступ справа от иконки уведомлений #}
+                 {# unread_notifications_count передается из context_processor #}
+                 <a class="nav-link position-relative {% if unread_notifications_count > 0 %}text-warning{% endif %}" href="{{ url_for('dashboard.notifications') }}" title="Уведомления">
+                     <i class="bi bi-bell-fill fs-5"></i> {# Иконка Bootstrap Icons #}
+                     {# Счетчик непрочитанных #}
+                     {% if unread_notifications_count > 0 %}
+                     <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                        {{ unread_notifications_count }}
+                        <span class="visually-hidden">непрочитанных уведомлений</span>
+                      </span>
+                     {% endif %}
+                 </a>
+             </li>
+             {# --- Конец блока уведомлений --- #}
+
+             {# --- Выпадающее меню пользователя --- #}
+             <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="bi bi-person-circle me-1"></i> {# Иконка пользователя #}
+                {{ current_user.username }}
+              </a>
+              <ul class="dropdown-menu dropdown-menu-end">
+                <li><a class="dropdown-item {% if request.endpoint == 'dashboard.profile' %}active{% endif %}" href="{{ url_for('dashboard.profile') }}">Профиль</a></li>
+                <li><a class="dropdown-item {% if request.endpoint == 'dashboard.settings' %}active{% endif %}" href="{{ url_for('dashboard.settings') }}">Настройки</a></li>
+
+                {# --- Ссылки только для администратора --- #}
+                {% if current_user.is_admin() %}
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item {% if request.endpoint == 'dashboard.list_users' %}active{% endif %}" href="{{ url_for('dashboard.list_users') }}">
+                    <i class="bi bi-people-fill"></i> Пользователи
+                    </a>
+                </li>
+                {# Сюда можно добавить другие админские ссылки #}
+                {% endif %}
+                {# --- Конец ссылок для администратора --- #}
+
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item" href="{{ url_for('auth.logout') }}">
+                    <i class="bi bi-box-arrow-right"></i> Выйти
+                    </a>
+                </li>
+              </ul>
+            </li>
+            {# --- Конец выпадающего меню --- #}
+
+         {% else %} {# Пользователь не аутентифицирован #}
+             <li class="nav-item">
+                <a class="nav-link {% if request.endpoint == 'auth.login' %}active{% endif %}" href="{{ url_for('auth.login') }}">Войти</a>
+             </li>
+             <li class="nav-item">
+                <a class="nav-link {% if request.endpoint == 'auth.register' %}active{% endif %}" href="{{ url_for('auth.register') }}">Регистрация</a>
+             </li>
+         {% endif %} {# Конец проверки current_user.is_authenticated #}
+      </ul> {# Конец правого меню #}
+
+    </div> {# Конец collapse navbar-collapse #}
+  </div> {# Конец container #}
+</nav>

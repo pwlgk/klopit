@@ -1,0 +1,24 @@
+<!-- app/dashboard/templates/settings.html -->
+{% extends "base.html" %}
+
+{% block content %}
+<h1>{{ title }}</h1>
+<p class="lead">Управление вашим аккаунтом.</p>
+<hr>
+
+<div class="list-group">
+  <a href="{{ url_for('dashboard.edit_profile') }}" class="list-group-item list-group-item-action">
+    <div class="d-flex w-100 justify-content-between">
+      <h5 class="mb-1"><i class="bi bi-person-lines-fill"></i> Редактировать профиль</h5>
+    </div>
+    <p class="mb-1">Изменить имя пользователя и email.</p>
+  </a>
+  <a href="{{ url_for('dashboard.change_password') }}" class="list-group-item list-group-item-action">
+    <div class="d-flex w-100 justify-content-between">
+      <h5 class="mb-1"><i class="bi bi-key-fill"></i> Сменить пароль</h5>
+    </div>
+    <p class="mb-1">Установить новый пароль для входа в систему.</p>
+  </a>
+  
+</div>
+{% endblock %}

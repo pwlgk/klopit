@@ -1,0 +1,35 @@
+<!-- app/dashboard/templates/notifications.html -->
+{% extends "base.html" %}
+
+{% block content %}
+<h1>{{ title }}</h1>
+<hr>
+
+{% if notifications %}
+<ul class="list-group">
+    {% for notification in notifications %}
+    <li class="list-group-item {% if not notification.is_read %}list-group-item-primary{% endif %}">
+        <div class="d-flex w-100 justify-content-between">
+            <p class="mb-1">
+                {# Если есть ссылка, делаем сообщение ссылкой #}
+                {% if notification.related_url %}
+                    <a href="{{ notification.related_url }}" class="text-decoration-none">
+                        {{ notification.message }}
+                    </a>
+                {% else %}
+                    {{ notification.message }}
+                {% endif %}
+            </p>
+            <small class="text-muted">{{ notification.timestamp.strftime('%d.%m.%Y %H:%M') }}</small>
+        </div>
+         {# Можно добавить кнопку для удаления уведомления, если нужно #}
+    </li>
+    {% endfor %}
+</ul>
+{% else %}
+<div class="alert alert-info" role="alert">
+  У вас пока нет уведомлений.
+</div>
+{% endif %}
+
+{% endblock %}

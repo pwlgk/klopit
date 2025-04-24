@@ -1,0 +1,25 @@
+<!-- app/projects/templates/_project_form.html -->
+{% import "includes/_formhelpers.html" as forms %}
+
+{# --- Определяем URL отмены в зависимости от контекста --- #}
+{% if project is defined %}
+    {# Если project передан (редактирование), ссылка на детали проекта #}
+    {% set default_cancel_url = url_for('projects.view_project', project_id=project.id) %}
+{% else %}
+    {# Если project не передан (создание), ссылка на список проектов #}
+    {% set default_cancel_url = url_for('projects.list_projects') %}
+{% endif %}
+
+{# Используем явно переданный cancel_url (если он есть) или default_cancel_url #}
+{% set final_cancel_url = cancel_url or default_cancel_url %}
+{# --- Конец определения URL --- #}
+
+<form method="POST" action="{{ form_action or '' }}" novalidate>
+    {{ form.hidden_tag() }} {# CSRF токен #}
+    {{ forms.render_field(form.name, class="form-control") }}
+    {{ forms.render_field(form.description, class="form-control", rows=5) }}
+    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+        <a href="{{ final_cancel_url }}" class="btn btn-secondary me-md-2">Отмена</a>
+        {{ form.submit(class="btn btn-primary") }}
+    </div>
+</form>

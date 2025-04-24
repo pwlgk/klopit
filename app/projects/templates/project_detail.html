@@ -1,0 +1,268 @@
+<!-- app/projects/templates/project_detail.html -->
+{% extends "base.html" %}
+
+
+{% block content %}
+{# --- Шапка страницы проекта --- #}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1>{{ project.name }}</h1>
+    <div>
+        {% if current_user.can_access_project(project) %}
+        <a href="{{ url_for('reports.project_report', project_id=project.id) }}" class="btn btn-sm btn-outline-info me-2" title="Отчет по проекту">
+             Отчет
+        </a>
+        {% endif %}
+        {% if project.owner_id == current_user.id %}
+        <a href="{{ url_for('projects.edit_project', project_id=project.id) }}" class="btn btn-sm btn-outline-primary me-2" title="Редактировать проект">
+             Редактировать
+        </a>
+        <form action="{{ url_for('projects.delete_project', project_id=project.id) }}" method="POST" class="d-inline" onsubmit="return confirm('Вы уверены, что хотите удалить проект \'{{ project.name|escape }}\'? Все связанные задачи, файлы и комментарии будут также удалены.');">
+             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+             <button type="submit" class="btn btn-sm btn-outline-danger" title="Удалить проект">
+                  Удалить
+             </button>
+        </form>
+        {% endif %}
+    </div>
+</div>
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{{ url_for('projects.list_projects') }}">Проекты</a></li>
+    <li class="breadcrumb-item active" aria-current="page">{{ project.name }}</li>
+  </ol>
+</nav>
+<hr>
+
+<div class="row">
+    {# --- Основной контент: Описание и Задачи --- #}
+    <div class="col-lg-8">
+
+        {# Описание проекта #}
+        {% if project.description %}
+            <h5>Описание:</h5>
+            <p class="preserve-lines">{{ project.description }}</p>
+            <hr>
+        {% endif %}
+
+        {# --- Заголовок и кнопка добавления задачи --- #}
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h4><i class="bi bi-list-task me-2"></i>Задачи</h4>
+            {% if current_user.can_access_project(project) %}
+            <a href="{{ url_for('projects.create_task', project_id=project.id) }}" class="btn btn-success">
+                 <i class="bi bi-plus-lg"></i> Добавить задачу
+            </a>
+            {% endif %}
+        </div>
+
+        {# --- Список Задач --- #}
+        {% if tasks %}
+        <div class="list-group shadow-sm">
+            {% for task in tasks %}
+            <div class="list-group-item p-3" id="task-{{ task.id }}">
+                {# -- Верхняя строка: Название и Кнопки управления -- #}
+                <div class="d-flex w-100 justify-content-between align-items-start mb-2">
+                    <h5 class="mb-0 task-title">
+                        {# Статус-иконка #}
+                        {% if task.status == TaskStatus.DONE %}
+                            <i class="bi bi-check-circle-fill text-success me-1" title="{{ task.status.value }}"></i>
+                        {% elif task.status == TaskStatus.IN_PROGRESS %}
+                             <i class="bi bi-play-circle-fill text-primary me-1" title="{{ task.status.value }}"></i>
+                        {% elif task.status == TaskStatus.ARCHIVED %}
+                             <i class="bi bi-archive-fill text-secondary me-1" title="{{ task.status.value }}"></i>
+                        {% else %} {# TODO #}
+                             <i class="bi bi-circle text-warning me-1" title="{{ task.status.value }}"></i>
+                        {% endif %}
+                        {{ task.title }}
+                    </h5>
+                    {# Кнопки управления задачей #}
+                    {% if current_user.can_access_project(project) %}
+                    <div class="task-actions ms-2 flex-shrink-0">
+                        {# --- ИЗМЕНЕНИЕ КНОПКИ РЕДАКТИРОВАНИЯ --- #}
+                        <a href="{{ url_for('projects.edit_task', task_id=task.id) }}" class="btn btn-sm btn-outline-secondary me-1" title="Редактировать задачу">
+                            Редактировать
+                        </a>
+                         {# --- ИЗМЕНЕНИЕ КНОПКИ УДАЛЕНИЯ --- #}
+                         <form action="{{ url_for('projects.delete_task', task_id=task.id) }}" method="POST" class="d-inline" onsubmit="return confirm('Удалить задачу \'{{ task.title|escape }}\'?');">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Удалить задачу">
+                                Удалить
+                            </button>
+                        </form>
+                    </div>
+                    {% endif %}
+                </div> {# Конец верхней строки #}
+
+                {# -- Информация о задаче -- #}
+                <div class="task-meta d-flex flex-wrap gap-3 align-items-center mb-2">
+                    {# Приоритет #}
+                    <span class="badge {% if task.priority == TaskPriority.HIGH %} bg-danger-subtle text-danger-emphasis border border-danger-subtle {% elif task.priority == TaskPriority.MEDIUM %} bg-info-subtle text-info-emphasis border border-info-subtle {% else %} bg-light text-dark border border-light-subtle {% endif %} rounded-pill">
+                        <i class="bi bi-flag-fill"></i> {{ task.priority.value }}
+                    </span>
+                    {# Исполнитель #}
+                    <span class="text-muted small">
+                         <i class="bi bi-person-fill"></i> {% if task.assignee %} {{ task.assignee.username }} {% else %} Не назначен {% endif %}
+                    </span>
+                     {# Срок выполнения #}
+                     {% if task.due_date %}
+                    <span class="text-muted small {% if task.due_date.date() < today_date and task.status != TaskStatus.DONE %}text-danger fw-bold{% endif %}">
+                         <i class="bi bi-calendar-check"></i> Срок: {{ task.due_date.strftime('%d.%m.%Y') }}
+                         {% if task.due_date.date() < today_date and task.status != TaskStatus.DONE %} <i class="bi bi-exclamation-triangle-fill" title="Просрочено!"></i> {% endif %}
+                    </span>
+                    {% endif %}
+                </div>
+
+                {# Описание задачи #}
+                {% if task.description %}
+                    <p class="task-description preserve-lines small mt-2 mb-2">{{ task.description }}</p>
+                {% endif %}
+
+                {# --- Раздел Файлов --- #}
+                <div class="task-files mt-2 d-flex align-items-center flex-wrap"> {# Добавили flex для выравнивания #}
+                    {% if task.files.count() > 0 %}
+                        <strong class="small me-2"><i class="bi bi-paperclip"></i> Файлы:</strong>
+                        {% for file in task.files %}
+                            <span class="d-inline-block me-2 mb-1 border rounded px-2 py-1 bg-light"> {# Обертка для файла #}
+                                 <a href="{{ url_for('files.download_file', file_id=file.id) }}" class="text-decoration-none me-1" title="Скачать {{ file.original_filename }}">
+                                     <i class="bi bi-file-earmark-text"></i> {{ file.original_filename|truncate(30) }}
+                                 </a>
+                                 {# Кнопка удаления файла #}
+                                 {% if project.owner_id == current_user.id or file.user_id == current_user.id %}
+                                 <form action="{{ url_for('files.delete_file', file_id=file.id) }}" method="POST" class="d-inline file-delete-form" onsubmit="return confirm('Удалить файл \'{{ file.original_filename|escape }}\'?');">
+                                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                     {# --- ИЗМЕНЕНИЕ КНОПКИ УДАЛЕНИЯ ФАЙЛА --- #}
+                                     <button type="submit" class="btn btn-sm btn-link text-danger p-0 ms-1" style="text-decoration: none;" title="Удалить файл">
+                                         <small>(удалить)</small> {# Или <i class="bi bi-x-lg"></i> #}
+                                     </button>
+                                 </form>
+                                 {% endif %}
+                            </span>
+                        {% endfor %}
+                    {% endif %}
+                     {# --- ИЗМЕНЕНИЕ ФОРМЫ ЗАГРУЗКИ ФАЙЛА --- #}
+                     {% if current_user.can_access_project(project) %}
+                     <form action="{{ url_for('files.upload_task_file', task_id=task.id) }}" method="post" enctype="multipart/form-data" class="d-inline-block ms-2">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        <label for="fileInput{{ task.id }}" class="btn btn-sm btn-outline-secondary">
+                             Прикрепить файл {# Текст вместо иконки #}
+                        </label>
+                         <input type="file" class="d-none" name="file" id="fileInput{{ task.id }}" onchange="this.form.submit()" required> {# Скрытый инпут #}
+                    </form>
+                    {% endif %}
+                </div> {# Конец task-files #}
+
+                {# --- Раздел Комментариев --- #}
+                <div class="task-comments mt-3">
+                     <a class="text-decoration-none small" data-bs-toggle="collapse" href="#commentsCollapse{{ task.id }}" role="button" aria-expanded="false" aria-controls="commentsCollapse{{ task.id }}">
+                        <i class="bi bi-chat-dots"></i> Комментарии ({{ task.comments.count() }})
+                        <i class="bi bi-chevron-down collapse-icon"></i>
+                     </a>
+                     <div class="collapse mt-2" id="commentsCollapse{{ task.id }}">
+                         {# ... (Содержимое блока комментариев остается без изменений) ... #}
+                         <div class="comments-list mb-3" style="max-height: 300px; overflow-y: auto;">
+                            {% if task.comments.count() > 0 %}
+                                {% for comment in task.comments.order_by(Comment.created_at.asc()) %}
+                                <div class="card mb-2 shadow-sm">
+                                    <div class="card-body p-2">
+                                         <p class="card-text mb-1 preserve-lines small">{{ comment.body }}</p>
+                                         <small class="text-muted"><i class="bi bi-person"></i> {{ comment.author.username }} - <i class="bi bi-clock"></i> {{ comment.created_at.strftime('%d.%m.%Y %H:%M') }}</small>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            {% else %}
+                                <p class="text-muted small">Комментариев пока нет.</p>
+                            {% endif %}
+                        </div>
+                        {% if current_user.can_access_project(project) %}
+                        <form action="{{ url_for('projects.add_comment', task_id=task.id) }}" method="post">
+                             {{ comment_form.hidden_tag() }}
+                             <div class="mb-2">
+                                  {{ comment_form.body(class="form-control form-control-sm", rows=2, placeholder="Написать комментарий...") }}
+                                  {% if comment_form.body.errors %}
+                                      <div class="invalid-feedback d-block">{% for error in comment_form.body.errors %}<span>{{ error }}</span><br>{% endfor %}</div>
+                                  {% endif %}
+                             </div>
+                             <div class="text-end">
+                                {{ comment_form.submit(class="btn btn-primary btn-sm") }}
+                             </div>
+                        </form>
+                        {% endif %}
+                     </div> {# Конец collapse #}
+                </div> {# Конец task-comments #}
+
+            </div> {# Конец list-group-item #}
+            {% endfor %} {# Конец цикла по задачам #}
+        </div> {# Конец list-group #}
+        {% else %}
+            <div class="alert alert-light text-center" role="alert">
+                В этом проекте пока нет задач.
+            </div>
+        {% endif %} {# Конец if tasks #}
+
+    </div> {# Конец col-lg-8 #}
+
+    {# --- Боковая панель с Участниками --- #}
+    <div class="col-lg-4">
+        {# ... (Код боковой панели с участниками остается без изменений) ... #}
+        <div class="card sticky-top shadow-sm" style="top: 1rem;" id="members">
+            <div class="card-header"><i class="bi bi-people-fill"></i> Участники проекта</div>
+            <ul class="list-group list-group-flush">
+                <li class="list-group-item d-flex justify-content-between align-items-center"><span><i class="bi bi-person-fill-gear text-primary"></i> <strong>{{ project.owner.username }}</strong> (Владелец)</span></li>
+                {% set has_other_members = false %}
+                {% for member in project_members %}
+                    {% if member.id != project.owner_id %}
+                        {% set has_other_members = true %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                             <span><i class="bi bi-person"></i> {{ member.username }}</span>
+                             {% if project.owner_id == current_user.id %}
+                                 <form action="{{ url_for('projects.remove_member', project_id=project.id, user_id=member.id) }}" method="POST" class="d-inline" onsubmit="return confirm('Удалить пользователя \'{{ member.username|escape }}\' из проекта?');">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                    <button type="submit" class="btn btn-sm btn-outline-danger py-0 px-1" title="Удалить участника"><i class="bi bi-person-dash-fill"></i></button>
+                                </form>
+                             {% endif %}
+                        </li>
+                    {% endif %}
+                {% endfor %}
+                 {% if not has_other_members %}<li class="list-group-item text-muted"><small>Других участников нет.</small></li>{% endif %}
+            </ul>
+            {% if project.owner_id == current_user.id %}
+            <div class="card-footer">
+                 <form action="{{ url_for('projects.add_member', project_id=project.id) }}" method="post">
+                     {{ add_member_form.hidden_tag() }}
+                     <label for="addMemberEmail" class="form-label visually-hidden">Добавить участника по Email</label>
+                     <div class="input-group input-group-sm">
+                         {{ add_member_form.email(class="form-control", placeholder="Email для добавления", id="addMemberEmail") }}
+                         {{ add_member_form.submit(class="btn btn-outline-success") }}
+                     </div>
+                      {% if add_member_form.email.errors %}<div class="invalid-feedback d-block">{% for error in add_member_form.email.errors %}<span>{{ error }}</span><br>{% endfor %}</div>{% endif %}
+                 </form>
+            </div>
+            {% endif %}
+        </div>
+    </div> {# Конец col-lg-4 #}
+</div> {# Конец row #}
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+{# JS для иконки раскрытия комментариев #}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var commentCollapses = document.querySelectorAll('.collapse');
+        commentCollapses.forEach(function (collapse) {
+            var triggerLink = document.querySelector('[href="#' + collapse.id + '"]');
+            var icon = triggerLink ? triggerLink.querySelector('.collapse-icon') : null;
+
+            if (icon) {
+                collapse.addEventListener('show.bs.collapse', function () {
+                    icon.classList.remove('bi-chevron-down');
+                    icon.classList.add('bi-chevron-up');
+                });
+                collapse.addEventListener('hide.bs.collapse', function () {
+                    icon.classList.remove('bi-chevron-up');
+                    icon.classList.add('bi-chevron-down');
+                });
+            }
+        });
+    });
+</script>
+{% endblock %}

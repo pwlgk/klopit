@@ -2,12 +2,52 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h1>Панель управления</h1>
+<h1>{{ title }}</h1>
+<p class="lead">Добро пожаловать, {{ current_user.username }}!</p>
 <hr>
-<p>Добро пожаловать, {{ current_user.username }}!</p>
-<p>Это ваша личная панель управления. Здесь скоро появятся ваши проекты и задачи.</p>
 
-<a href="{{ url_for('dashboard.profile') }}" class="btn btn-info">Мой профиль</a>
-{# Ссылки на проекты и т.д. #}
+<div class="row g-3">
+    {# --- Статистика Проектов --- #}
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header"><i class="bi bi-briefcase-fill"></i> Мои Проекты</div>
+            <div class="card-body">
+                {% set owned_count = current_user.projects_owned.count() %}
+                {% set member_count = current_user.projects_member_of.count() %}
+                <p>Вы владеете: {{ owned_count }} проект(а/ов).</p>
+                <p>Вы участвуете в: {{ member_count }} проект(ах).</p>
+                <a href="{{ url_for('projects.list_projects') }}" class="btn btn-primary">Перейти к проектам</a>
+                <a href="{{ url_for('projects.create_project') }}" class="btn btn-success">Создать новый</a>
+            </div>
+        </div>
+    </div>
+
+    {# --- Статистика Задач --- #}
+    <div class="col-md-6">
+         <div class="card">
+            <div class="card-header"><i class="bi bi-check2-square"></i> Мои Задачи</div>
+            <div class="card-body">
+                {% set assigned_count = current_user.tasks_assigned.count() %}
+                {# Можно добавить подсчет активных/просроченных #}
+                 <p>Вам назначено: {{ assigned_count }} задач(и).</p>
+                 <p><small class="text-muted">(Скоро здесь будет больше информации)</small></p>
+                {# <a href="#" class="btn btn-primary">Мои задачи</a> #}
+            </div>
+        </div>
+    </div>
+
+    {# --- Быстрые ссылки --- #}
+     <div class="col-12">
+         <div class="card">
+            <div class="card-header"><i class="bi bi-link-45deg"></i> Быстрые действия</div>
+            <div class="card-body d-flex gap-2">
+                 <a href="{{ url_for('dashboard.profile') }}" class="btn btn-outline-secondary"><i class="bi bi-person-circle"></i> Мой профиль</a>
+                 <a href="{{ url_for('dashboard.settings') }}" class="btn btn-outline-secondary"><i class="bi bi-gear-fill"></i> Настройки</a>
+                 <a href="{{ url_for('reports.index') }}" class="btn btn-outline-secondary"><i class="bi bi-bar-chart-line-fill"></i> Отчеты</a>
+            </div>
+        </div>
+    </div>
+
+</div>
 
 {% endblock %}

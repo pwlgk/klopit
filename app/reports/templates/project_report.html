@@ -1,0 +1,235 @@
+<!-- app/reports/templates/project_report.html -->
+{% extends "base.html" %}
+
+{% block content %}
+{# --- Шапка и Хлебные крошки --- #}
+<h1>{{ title }}</h1>
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{{ url_for('reports.index') }}">Отчеты</a></li>
+    {# Ссылка на сам проект #}
+    <li class="breadcrumb-item"><a href="{{ url_for('projects.view_project', project_id=project.id) }}">{{ project.name }}</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Отчет по проекту</li>
+  </ol>
+</nav>
+<hr>
+
+{# --- Блок со Статистикой и Графиками --- #}
+<div class="row g-4"> {# Увеличили отступы между колонками g-4 #}
+
+    {# --- Левая колонка: Текстовая статистика и Прогресс --- #}
+    <div class="col-lg-5"> {# Сделали левую колонку чуть меньше #}
+        {# Карточка: Общая статистика #}
+        <div class="card mb-4"> {# Добавили отступ снизу #}
+            <div class="card-header">
+                <i class="bi bi-list-check"></i> Общая статистика
+            </div>
+            <ul class="list-group list-group-flush">
+                <li class="list-group-item d-flex justify-content-between align-items-center fw-bold">
+                    Всего задач:
+                    <span class="badge bg-primary rounded-pill fs-6">{{ total_tasks }}</span>
+                </li>
+                {# Выводим статистику по каждому статусу из словаря stats (ключи - Enum) #}
+                {% for status in TaskStatus %} {# TaskStatus из context_processor #}
+                    {% set count = stats.get(status, 0) %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        {{ status.value }}: {# Читаемое значение статуса #}
+                        <span class="badge
+                            {% if status == TaskStatus.DONE %} bg-success
+                            {% elif status == TaskStatus.IN_PROGRESS %} bg-info text-dark
+                            {% elif status == TaskStatus.ARCHIVED %} bg-secondary
+                            {% else %} bg-warning text-dark {% endif %} rounded-pill">
+                            {{ count }}
+                        </span>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        {# Карточка: Прогресс выполнения #}
+        <div class="card">
+             <div class="card-header">
+                <i class="bi bi-check2-all"></i> Прогресс выполнения
+            </div>
+            <div class="card-body">
+                {% if total_tasks > 0 %}
+                    <div class="progress" style="height: 25px;" role="progressbar" aria-label="Прогресс выполнения задач" aria-valuenow="{{ completion_percentage }}" aria-valuemin="0" aria-valuemax="100">
+                      <div class="progress-bar bg-success progress-bar-striped progress-bar-animated" style="width: {{ completion_percentage }}%;">
+                          {{ completion_percentage }}%
+                      </div>
+                    </div>
+                    <p class="card-text mt-2 text-center">{{ stats.get(TaskStatus.DONE, 0) }} из {{ total_tasks }} задач выполнено.</p>
+                {% else %}
+                    <p class="card-text text-muted">Задач для расчета прогресса нет.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div> {# Конец левой колонки #}
+
+     {# --- Правая колонка: Графики --- #}
+     <div class="col-lg-7"> {# Сделали правую колонку чуть больше #}
+         {# График по Статусам #}
+         <div class="card mb-4"> {# Добавили отступ снизу #}
+             <div class="card-header">
+                <i class="bi bi-pie-chart-fill"></i> Распределение задач по статусам
+            </div>
+             <div class="card-body">
+                {% if total_tasks > 0 %}
+                    {# Элемент canvas для графика, высота ограничена для сохранения пропорций #}
+                    <div style="position: relative; height:300px; width:100%">
+                         <canvas id="statusChart"></canvas>
+                    </div>
+                {% else %}
+                     <p class="text-muted">Нет данных для графика.</p>
+                {% endif %}
+             </div>
+         </div>
+         {# График по Приоритетам #}
+          <div class="card">
+             <div class="card-header">
+                <i class="bi bi-bar-chart-fill"></i> Распределение задач по приоритетам
+            </div>
+             <div class="card-body">
+                  {% if total_tasks > 0 %}
+                     {# Элемент canvas для графика #}
+                    <div style="position: relative; height:250px; width:100%">
+                        <canvas id="priorityChart"></canvas>
+                    </div>
+                  {% else %}
+                     <p class="text-muted">Нет данных для графика.</p>
+                  {% endif %}
+             </div>
+         </div>
+     </div> {# Конец правой колонки #}
+
+</div> {# Конец row #}
+{% endblock %}
+
+
+{# --- Скрипты для Графиков Chart.js --- #}
+{% block scripts %}
+    {{ super() }} {# Наследуем скрипты из base.html (включая Chart.js CDN) #}
+
+    {# Безопасно передаем данные из Flask (сериализованные через json.dumps в view) в JS #}
+    <script>
+        // Парсим JSON данные, переданные из Flask view
+        const statusData = JSON.parse('{{ chart_status_data_json | safe }}');
+        const priorityData = JSON.parse('{{ chart_priority_data_json | safe }}');
+        const statusLabelsMap = JSON.parse('{{ status_enum_values_json | safe }}');
+        const priorityLabelsMap = JSON.parse('{{ priority_enum_values_json | safe }}');
+
+        // Проверяем наличие canvas элемента перед инициализацией графика
+        const statusCtx = document.getElementById('statusChart');
+        if (statusCtx && Object.values(statusData).some(v => v > 0)) { // Рисуем, только если есть данные
+            // Подготавливаем данные для Chart.js
+            const statusChartLabels = Object.keys(statusData).map(key => statusLabelsMap[key] || key); // Названия статусов
+            const statusChartValues = Object.values(statusData);
+            // Цвета для статусов
+            const statusBackgroundColors = [
+                'rgba(255, 193, 7, 0.7)', // warning (TODO)
+                'rgba(13, 110, 253, 0.7)', // primary (IN_PROGRESS)
+                'rgba(25, 135, 84, 0.7)', // success (DONE)
+                'rgba(108, 117, 125, 0.7)' // secondary (ARCHIVED)
+            ];
+            // Динамически подбираем цвета по ключам (на случай разного порядка)
+             const currentStatusColors = Object.keys(statusData).map(key => {
+                 if (key === 'TODO') return statusBackgroundColors[0];
+                 if (key === 'IN_PROGRESS') return statusBackgroundColors[1];
+                 if (key === 'DONE') return statusBackgroundColors[2];
+                 if (key === 'ARCHIVED') return statusBackgroundColors[3];
+                 return 'rgba(200, 200, 200, 0.7)'; // Default grey
+             });
+
+
+            new Chart(statusCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: statusChartLabels,
+                    datasets: [{
+                        label: 'Кол-во задач',
+                        data: statusChartValues,
+                        backgroundColor: currentStatusColors,
+                        borderColor: currentStatusColors.map(c => c.replace('0.7', '1')),
+                        borderWidth: 1,
+                        hoverOffset: 4 // Небольшое увеличение при наведении
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false, // Важно для задания высоты через CSS/style
+                    plugins: {
+                        legend: {
+                            position: 'top', // Положение легенды
+                        },
+                        tooltip: {
+                            callbacks: { // Форматирование подсказки
+                                label: function(context) {
+                                    let label = context.label || '';
+                                    if (label) { label += ': '; }
+                                    let value = context.parsed;
+                                    let sum = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    let percentage = sum > 0 ? ((value / sum) * 100).toFixed(1) + '%' : '0%';
+                                    label += value + ' (' + percentage + ')';
+                                    return label;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Проверяем наличие canvas элемента перед инициализацией графика
+        const priorityCtx = document.getElementById('priorityChart');
+        if (priorityCtx && Object.values(priorityData).some(v => v > 0)) { // Рисуем, только если есть данные
+             // Подготавливаем данные
+            const priorityChartLabels = Object.keys(priorityData).map(key => priorityLabelsMap[key] || key);
+            const priorityChartValues = Object.values(priorityData);
+             // Цвета для приоритетов
+            const priorityBackgroundColors = [
+                'rgba(220, 53, 69, 0.7)',  // danger (HIGH)
+                'rgba(13, 202, 240, 0.7)',  // info (MEDIUM)
+                'rgba(108, 117, 125, 0.7)' // secondary (LOW)
+            ];
+             // Динамически подбираем цвета по ключам
+             const currentPriorityColors = Object.keys(priorityData).map(key => {
+                 if (key === 'HIGH') return priorityBackgroundColors[0];
+                 if (key === 'MEDIUM') return priorityBackgroundColors[1];
+                 if (key === 'LOW') return priorityBackgroundColors[2];
+                 return 'rgba(200, 200, 200, 0.7)'; // Default grey
+             });
+
+            new Chart(priorityCtx, {
+                type: 'bar',
+                data: {
+                    labels: priorityChartLabels,
+                    datasets: [{
+                        label: 'Кол-во задач',
+                        data: priorityChartValues,
+                        backgroundColor: currentPriorityColors,
+                        borderColor: currentPriorityColors.map(c => c.replace('0.7', '1')),
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false, // Важно для задания высоты через CSS/style
+                    indexAxis: 'y', // Горизонтальные столбцы для лучшей читаемости меток
+                    scales: {
+                        x: { // Ось X (значения)
+                            beginAtZero: true,
+                            ticks: { // Настройки меток оси X
+                                precision: 0 // Показываем только целые числа
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false // Легенда не очень информативна для одного набора данных
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+{% endblock %}

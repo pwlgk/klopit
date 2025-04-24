@@ -1,0 +1,35 @@
+<!-- app/projects/templates/_task_form.html -->
+{% import "includes/_formhelpers.html" as forms %}
+
+{# Определяем URL для кнопки отмены здесь, используя project из контекста #}
+{% set cancel_url = cancel_url or url_for('projects.view_project', project_id=project.id) %}
+
+<form method="POST" action="{{ form_action or '' }}" novalidate>
+    {{ form.hidden_tag() }} {# CSRF токен #}
+
+    {# ... поля формы ... #}
+    {{ forms.render_field(form.title, class="form-control") }}
+    {{ forms.render_field(form.description, class="form-control", rows=4) }}
+    <div class="row g-3">
+        <div class="col-md-6">
+             {{ forms.render_field(form.status, class="form-select") }}
+        </div>
+         <div class="col-md-6">
+             {{ forms.render_field(form.priority, class="form-select") }}
+        </div>
+        <div class="col-md-6">
+             {{ forms.render_field(form.assignee_id, class="form-select") }}
+        </div>
+         <div class="col-md-6">
+             {{ forms.render_field(form.due_date, class="form-control", type="date") }}
+        </div>
+    </div>
+    {# ... конец полей формы ... #}
+
+    <hr>
+    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+        {# Используем переменную cancel_url, определенную выше #}
+        <a href="{{ cancel_url }}" class="btn btn-secondary me-md-2">Отмена</a>
+        {{ form.submit(class="btn btn-primary") }}
+    </div>
+</form>

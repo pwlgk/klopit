@@ -1,0 +1,19 @@
+<!-- app/projects/templates/edit_project.html -->
+{% extends "base.html" %}
+
+{% block content %}
+<h1>{{ title }}</h1>
+<hr>
+ <div class="row">
+    <div class="col-md-8">
+        {# 1. Определяем переменные в текущем контексте #}
+        {#    form_action передается из view-функции, присваиваем его здесь #}
+        {% set form_action = form_action %}
+        {#    Определяем cancel_url здесь #}
+        {% set cancel_url = url_for('projects.view_project', project_id=project.id) %}
+
+        {# 2. Включаем шаблон. Он унаследует переменные из контекста. #}
+        {% include "_project_form.html" %}
+    </div>
+</div>
+{% endblock %}

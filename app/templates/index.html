@@ -2,16 +2,89 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="p-5 mb-4 bg-light rounded-3">
-  <div class="container-fluid py-5">
-    <h1 class="display-5 fw-bold">Добро пожаловать в Klopit!</h1>
-    <p class="col-md-8 fs-4">Ваш новый инструмент для управления проектами и задачами.</p>
-    {% if not current_user.is_authenticated %}
-    <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-lg" type="button">Начать работу</a>
-    <a href="{{ url_for('auth.login') }}" class="btn btn-outline-secondary btn-lg" type="button">Войти</a>
-    {% else %}
-     <a href="#" class="btn btn-success btn-lg" type="button">Перейти к проектам</a> {# Ссылка на проекты позже #}
-    {% endif %}
+
+{# --- Приветственный блок Jumbotron --- #}
+<div class="p-5 mb-4 bg-light rounded-3 border shadow-sm"> {# Добавили border и тень #}
+  <div class="container-fluid py-4"> {# Уменьшили вертикальный отступ #}
+    <div class="row align-items-center">
+      <div class="col-md-8">
+        <h1 class="display-5 fw-bold">Добро пожаловать в Klopit!</h1>
+        <p class="fs-4">Ваш эффективный инструмент для управления проектами, задачами и командной работой.</p>
+        <p>Организуйте рабочие процессы, отслеживайте прогресс и достигайте целей вместе с Klopit.</p>
+        {# Кнопки для неавторизованных пользователей #}
+        {% if not current_user.is_authenticated %}
+        <div class="d-grid gap-2 d-md-flex justify-content-md-start mt-4">
+            <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-lg" type="button">
+                <i class="bi bi-person-plus-fill"></i> Начать работу (Регистрация)
+            </a>
+            <a href="{{ url_for('auth.login') }}" class="btn btn-outline-secondary btn-lg" type="button">
+                 <i class="bi bi-box-arrow-in-right"></i> Войти
+            </a>
+        </div>
+        {# Кнопки для авторизованных пользователей #}
+        {% else %}
+         <div class="d-grid gap-2 d-md-flex justify-content-md-start mt-4">
+            <a href="{{ url_for('projects.list_projects') }}" class="btn btn-success btn-lg" type="button">
+                 <i class="bi bi-list-task"></i> Перейти к проектам
+             </a>
+            <a href="{{ url_for('dashboard.index') }}" class="btn btn-outline-info btn-lg" type="button">
+                <i class="bi bi-speedometer2"></i> Панель управления
+            </a>
+         </div>
+        {% endif %}
+      </div>
+      {# Опционально: Картинка справа #}
+      <div class="col-md-4 d-none d-md-block text-center">
+          <i class="bi bi-clipboard-data-fill text-primary opacity-50" style="font-size: 10rem;"></i>
+          {# Или ваше изображение: <img src="{{ url_for('static', filename='img/hero_image.png') }}" class="img-fluid" alt="Klopit illustration"> #}
+      </div>
+    </div>
   </div>
 </div>
+
+{# --- Блок с ключевыми возможностями --- #}
+<div class="row align-items-md-stretch">
+  <div class="col-md-6 mb-4">
+    <div class="h-100 p-5 text-bg-dark rounded-3 shadow">
+      <h2><i class="bi bi-diagram-3"></i> Управление проектами</h2>
+      <p>Создавайте неограниченное количество проектов, структурируйте задачи, назначайте ответственных и отслеживайте сроки выполнения.</p>
+      {% if current_user.is_authenticated %}
+       <a href="{{ url_for('projects.list_projects') }}" class="btn btn-outline-light" type="button">Мои проекты</a>
+      {% else %}
+       <a href="{{ url_for('auth.register') }}" class="btn btn-outline-light" type="button">Попробовать бесплатно</a>
+      {% endif %}
+    </div>
+  </div>
+  <div class="col-md-6 mb-4">
+    <div class="h-100 p-5 bg-body-tertiary border rounded-3 shadow-sm"> {# Использовали светлый фон #}
+      <h2><i class="bi bi-check2-square"></i> Задачи и подзадачи</h2>
+      <p>Декомпозируйте сложные задачи, устанавливайте приоритеты, добавляйте описания, файлы и комментарии для эффективного выполнения.</p>
+       {% if current_user.is_authenticated %}
+       <a href="{{ url_for('projects.create_project') }}" class="btn btn-outline-success" type="button">Создать проект</a>
+       {% else %}
+        <a href="{{ url_for('auth.register') }}" class="btn btn-outline-secondary" type="button">Узнать больше</a>
+       {% endif %}
+    </div>
+  </div>
+</div>
+
+{# --- Дополнительная информация или блок новостей (Пример) --- #}
+<div class="row mt-2">
+    <div class="col-12">
+         <div class="card shadow-sm">
+            <div class="card-header">
+                <i class="bi bi-info-circle-fill"></i> Новости и обновления
+            </div>
+            <div class="card-body">
+                <h5 class="card-title">Новые возможности в Klopit!</h5>
+                <p class="card-text">Мы рады сообщить о запуске раздела "Отчеты" с базовой статистикой и визуализацией. Теперь вы можете легко оценить прогресс ваших проектов.</p>
+                <p class="card-text"><small class="text-muted">Опубликовано: Апрель 2025</small></p>
+                 {% if current_user.is_authenticated %}
+                 <a href="{{ url_for('reports.index') }}" class="btn btn-sm btn-info">Перейти к отчетам</a>
+                 {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
 {% endblock %}

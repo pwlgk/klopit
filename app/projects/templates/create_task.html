@@ -1,0 +1,17 @@
+<!-- app/projects/templates/create_task.html -->
+{% extends "base.html" %}
+
+{% block content %}
+<h2>{{ title }}</h2>
+<h5 class="text-muted">В проекте: <a href="{{ url_for('projects.view_project', project_id=project.id) }}">{{ project.name }}</a></h5>
+<hr>
+<div class="row">
+    <div class="col-lg-8">
+         {# 1. Определяем переменную form_action в текущем контексте #}
+         {% set form_action = url_for('projects.create_task', project_id=project.id) %}
+
+         {# 2. Включаем шаблон. Он унаследует form_action из контекста. #}
+         {% include "_task_form.html" %}
+    </div>
+</div>
+{% endblock %}
