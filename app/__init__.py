@@ -20,7 +20,6 @@ def create_app(config_class=Config):
     login_manager.init_app(app)
     csrf.init_app(app)
     bcrypt.init_app(app)
-    # mail.init_app(app)
 
     # Регистрация Blueprints...
     from app.auth import bp as auth_bp
@@ -42,8 +41,6 @@ def create_app(config_class=Config):
     # Регистрация обработчика пользователя для Flask-Login...
     @login_manager.user_loader
     def load_user(user_id):
-        # Импорт User здесь, чтобы избежать цикличности при импорте Enum выше
-        # from app.models import User # Можно убрать отсюда, если User уже импортирован выше
         return User.query.get(int(user_id))
 
     # --- Контекстный процессор ---
@@ -61,7 +58,8 @@ def create_app(config_class=Config):
 
         # Передаем классы Enum, дату и нужные параметры конфига
         return dict(
-            today_date=date.today,
+            
+            today_date=date.today(),
             TaskStatus=TaskStatus,
             TaskPriority=TaskPriority,
              unread_notifications_count=unread_notifications_count,

@@ -1,12 +1,11 @@
 # app/dashboard/forms.py
 from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField, PasswordField, SelectField, BooleanField # Добавили SelectField, BooleanField
+from wtforms import StringField, SubmitField, PasswordField, SelectField, BooleanField 
 from wtforms.validators import DataRequired, Length, Email, ValidationError, EqualTo
 from wtforms_sqlalchemy.fields import QuerySelectField # Для выбора роли
 from app.models import User, Role # Импортируем Role
 
 class ProfileEditForm(FlaskForm):
-    # ... (форма редактирования своего профиля - без изменений) ...
     username = StringField('Имя пользователя', validators=[DataRequired(), Length(min=3, max=20)])
     email = StringField('Email', validators=[DataRequired(), Email()])
     submit = SubmitField('Сохранить изменения')
@@ -27,7 +26,6 @@ class ProfileEditForm(FlaskForm):
             if user: raise ValidationError('Этот email уже используется.')
 
 class ChangePasswordForm(FlaskForm):
-    # ... (форма смены своего пароля - без изменений) ...
     current_password = PasswordField('Текущий пароль', validators=[DataRequired()])
     new_password = PasswordField('Новый пароль', validators=[DataRequired(), Length(min=6)])
     new_password2 = PasswordField(
@@ -36,7 +34,7 @@ class ChangePasswordForm(FlaskForm):
     )
     submit = SubmitField('Сменить пароль')
 
-# --- Новая форма для редактирования пользователя админом ---
+# ---  форма для редактирования пользователя админом ---
 def get_roles():
     # Фабрика для QuerySelectField, возвращает все роли
     return Role.query.order_by(Role.name)

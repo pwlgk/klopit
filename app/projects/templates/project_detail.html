@@ -138,7 +138,6 @@
                             </span>
                         {% endfor %}
                     {% endif %}
-                     {# --- ИЗМЕНЕНИЕ ФОРМЫ ЗАГРУЗКИ ФАЙЛА --- #}
                      {% if current_user.can_access_project(project) %}
                      <form action="{{ url_for('files.upload_task_file', task_id=task.id) }}" method="post" enctype="multipart/form-data" class="d-inline-block ms-2">
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>

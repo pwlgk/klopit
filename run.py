@@ -5,4 +5,5 @@ app = create_app()
 
 if __name__ == '__main__':
     # debug=True не использовать в production!
+    # debug=False в production
     app.run(debug=True)

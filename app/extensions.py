@@ -4,7 +4,6 @@ from flask_migrate import Migrate
 from flask_login import LoginManager
 from flask_wtf.csrf import CSRFProtect
 from flask_bcrypt import Bcrypt
-# from flask_mail import Mail # Раскомментируем позже
 
 db = SQLAlchemy()
 migrate = Migrate()
@@ -21,4 +20,3 @@ login_manager.login_message_category = 'info' # Категория для flash 
 
 csrf = CSRFProtect()
 bcrypt = Bcrypt()
-# mail = Mail() # Раскомментируем позже

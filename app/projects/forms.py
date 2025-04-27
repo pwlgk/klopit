@@ -26,7 +26,7 @@ class AddMemberForm(FlaskForm):
                                    Email(message="Некорректный формат Email.")])
     submit = SubmitField('Добавить участника')
 
-# --- Новая Форма Задачи ---
+# ---  Форма Задачи ---
 class TaskForm(FlaskForm):
     title = StringField('Название задачи',
                         validators=[DataRequired(message="Название обязательно."),
@@ -36,10 +36,10 @@ class TaskForm(FlaskForm):
     # Работаем с именами Enum (строками)
     status = SelectField('Статус',
                          choices=[(stat.name, stat.value) for stat in TaskStatus],
-                         validators=[DataRequired()]) # Убрали coerce и default
+                         validators=[DataRequired()])
     priority = SelectField('Приоритет',
                            choices=[(prio.name, prio.value) for prio in TaskPriority],
-                           validators=[DataRequired()]) # Убрали coerce и default
+                           validators=[DataRequired()])
 
     assignee_id = QuerySelectField('Исполнитель (опционально)',
                                    query_factory=get_users,

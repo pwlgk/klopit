@@ -20,12 +20,8 @@ def add_notification(recipient_id, message, related_url=None):
                                     message=message,
                                     related_url=related_url)
         db.session.add(notification)
-        # Коммит сессии лучше делать в вызывающей функции (view),
-        # но для простоты можно и здесь, если нет других операций в транзакции.
-        # db.session.commit() # Лучше убрать отсюда
         print(f"Notification created for User {recipient_id}: {message}") # Отладка
     except Exception as e:
-        # db.session.rollback() # Откатывать нужно в view
         print(f"ERROR creating notification for User {recipient_id}: {e}")
 
 # --- Примеры сообщений ---
@@ -53,7 +49,6 @@ def notify_new_comment(comment, task):
     if task.creator_id not in [task.project.owner_id, task.assignee_id, commenter_id]:
          recipients.add(task.creator_id)
 
-    # Можно добавить уведомление всем участникам проекта, если нужно
 
     msg = f"Новый комментарий от @{comment.author.username} к задаче '{task.title}'"
     url = url_for('projects.view_project', project_id=task.project_id, _anchor=f'task-{task.id}')

@@ -1,17 +1,17 @@
 # app/projects/routes.py
 from flask import (
     render_template, redirect, url_for, flash, request, abort,
-    current_app # Хотя current_app больше не нужен в шаблонах, оставим на всякий случай
+    current_app 
 )
 from flask_login import login_required, current_user
 from sqlalchemy import or_ # Для сложных запросов SQLAlchemy
 from app.extensions import db
 from app.projects import bp
-from app.models import ( # Импортируем все нужные модели и Enum
+from app.models import ( 
     Project, Task, User, Role, File, Comment,
     TaskStatus, TaskPriority, project_members
 )
-from app.projects.forms import ( # Импортируем все нужные формы
+from app.projects.forms import ( 
     ProjectForm, TaskForm, CommentForm, AddMemberForm
 )
 from app.utils.notifications import ( # Импортируем функции уведомлений
@@ -50,8 +50,6 @@ def create_project():
         project = Project(name=form.name.data,
                           description=form.description.data,
                           owner_id=current_user.id) # Владелец - текущий пользователь
-        # Владелец автоматически становится участником (опционально, но логично)
-        # project.members.append(current_user) # Можно добавить, если нужно
         try:
             db.session.add(project)
             db.session.commit()
@@ -181,14 +179,12 @@ def create_task(project_id):
         form.status.data = TaskStatus.TODO.name
         form.priority.data = TaskPriority.MEDIUM.name
 
-    print(f"Handling request for create_task (Project ID: {project_id}), Method: {request.method}") # Отладка
 
     if form.validate_on_submit():
         print(">>> Form validation PASSED") # Отладка
         assignee_user = form.assignee_id.data
         status_name = form.status.data
         priority_name = form.priority.data
-        print(f"    Status Name: {status_name}, Priority Name: {priority_name}") # Отладка
 
         try:
             # Преобразуем строки обратно в Enum
@@ -204,7 +200,6 @@ def create_task(project_id):
                         creator_id=current_user.id,
                         assignee_id=assignee_user.id if assignee_user else None)
 
-            print(f"    Task object to save: {task.__dict__}") # Отладка
             db.session.add(task)
             db.session.flush() # Получаем ID для уведомления
 
@@ -214,21 +209,17 @@ def create_task(project_id):
                 notify_task_assigned(task, current_user, assignee_user)
 
             db.session.commit() # Коммитим все вместе
-            print(">>> DB commit SUCCESSFUL") # Отладка
             flash(f'Задача "{task.title}" успешно создана!', 'success')
             return redirect(url_for('projects.view_project', project_id=project.id))
 
         except KeyError:
-            print(f"!!! KeyError: Invalid Enum name received: status='{status_name}', priority='{priority_name}'") # Отладка
             flash('Получено неверное значение статуса или приоритета.', 'danger')
         except Exception as e:
             db.session.rollback()
-            print(f"!!! DB Error on commit: {e}", flush=True) # Отладка
             traceback.print_exc() # Отладка
             flash(f'Ошибка при сохранении задачи: {e}', 'danger')
 
     elif request.method == 'POST': # Валидация не прошла
-        print(">>> Form validation FAILED") # Отладка
         print(f"    Form errors: {form.errors}") # Отладка
 
     print("Rendering create_task.html template") # Отладка
@@ -243,7 +234,6 @@ def edit_task(task_id):
     project = task.project
 
     # Проверка доступа (владелец или участник)
-    # (Можно добавить и исполнителя: or task.assignee_id == current_user.id)
     if not current_user.can_access_project(project):
         abort(403)
 
@@ -329,7 +319,6 @@ def delete_task(task_id):
     project = task.project
 
     # Проверка доступа (владелец или участник)
-    # (Можно изменить на: if project.owner_id != current_user.id)
     if not current_user.can_access_project(project):
         abort(403)
 
@@ -385,15 +374,12 @@ def add_comment(task_id):
         # Если форма не валидна, выводим ошибки
         for field, errors in form.errors.items():
             for error in errors:
-                # Можно извлечь label поля, если оно определено в форме
-                # label = getattr(form, field).label.text if hasattr(getattr(form, field), 'label') else field
                 flash(f"Ошибка в комментарии: {error}", 'danger') # Упрощенный вывод
 
     # Перенаправляем обратно на страницу проекта, к якорю задачи
     return redirect(url_for('projects.view_project', project_id=project.id, _anchor=f'task-{task.id}'))
 
 
-# --- ОПЦИОНАЛЬНО: Быстрое изменение статуса (например, для Kanban) ---
 @bp.route('/tasks/<int:task_id>/status', methods=['POST'])
 @login_required
 def update_task_status(task_id):
@@ -405,7 +391,6 @@ def update_task_status(task_id):
     if not current_user.can_access_project(project) and task.assignee_id != current_user.id:
         abort(403)
 
-    # Ожидаем JSON вида {"status": "IN_PROGRESS"}
     if not request.is_json:
          abort(415, description="Ожидается JSON запрос.") # Unsupported Media Type
 

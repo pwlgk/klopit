@@ -1,9 +1,9 @@
 # app/reports/routes.py
 from flask import render_template, abort, current_app, jsonify
 from flask_login import login_required, current_user
-from sqlalchemy import func, case, or_ # Добавили or_
+from sqlalchemy import func, case, or_
 from app.reports import bp
-from app.models import Project, Task, TaskStatus, TaskPriority, User # Добавили User
+from app.models import Project, Task, TaskStatus, TaskPriority, User 
 from app.extensions import db
 import json # Для безопасной передачи данных в JS
 
@@ -59,7 +59,6 @@ def project_report(project_id):
     for prio_enum, count in priority_stats_query:
          if prio_enum in priority_stats: # Убедимся, что приоритет из Enum
             priority_stats[prio_enum] = count
-        # total_tasks уже посчитан выше
 
     # 3. Рассчитаем процент выполнения (если есть задачи)
     completion_percentage = 0

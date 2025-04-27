@@ -15,13 +15,3 @@ def admin_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
-# Можно добавить другие декораторы, например, для проверки прав на проект/задачу
-# def permission_required(permission):
-#     def decorator(f):
-#         @wraps(f)
-#         def decorated_function(*args, **kwargs):
-#             if not current_user.can(permission):
-#                 abort(403)
-#             return f(*args, **kwargs)
-#         return decorator
-#     return decorator

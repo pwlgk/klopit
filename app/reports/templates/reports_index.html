@@ -13,10 +13,10 @@
 
 {# --- Список проектов для отчета --- #}
 {% if projects %}
-    <div class="list-group shadow-sm"> {# Добавили тень к списку #}
+    <div class="list-group shadow-sm"> 
         {% for project in projects %}
         {# Ссылка ведет на страницу отчета по проекту #}
-        <a href="{{ url_for('reports.project_report', project_id=project.id) }}" class="list-group-item list-group-item-action p-3"> {# Увеличили padding #}
+        <a href="{{ url_for('reports.project_report', project_id=project.id) }}" class="list-group-item list-group-item-action p-3"> 
             <div class="d-flex w-100 justify-content-between">
                  {# Название проекта как основной элемент #}
                 <h5 class="mb-1">{{ project.name }}</h5>

@@ -8,8 +8,6 @@
  <div class="row">
     <div class="col-lg-8">
         {# 1. Определяем переменные в текущем контексте #}
-        {#    form_action уже должен быть передан из view-функции, #}
-        {#    но для ясности можно переприсвоить или убедиться, что он есть #}
         {% set form_action = form_action %}
         {% set cancel_url = url_for('projects.view_project', project_id=project.id) %}
 

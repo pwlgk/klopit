@@ -157,14 +157,12 @@ def edit_user(user_id):
 
     return render_template('admin/edit_user.html', title=f'Редактирование: {user.username}', form=form, user=user)
 
-# --- Опционально: Маршрут для активации/деактивации (быстрое действие) ---
 @bp.route('/admin/users/<int:user_id>/toggle_active', methods=['POST'])
 @login_required
 @admin_required
 def toggle_user_active(user_id):
     """Переключает статус активности пользователя."""
     user = User.query.get_or_404(user_id)
-    # Нельзя деактивировать себя
     if user.id == current_user.id:
         flash('Вы не можете деактивировать свой собственный аккаунт.', 'warning')
         return redirect(url_for('dashboard.list_users'))

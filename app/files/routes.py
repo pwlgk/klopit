@@ -5,12 +5,10 @@ from flask import (
     current_app, send_from_directory
 )
 from flask_login import login_required, current_user
-from werkzeug.utils import secure_filename # Используется в модели, но импортируем для ясности
+from werkzeug.utils import secure_filename 
 from app.extensions import db
 from app.files import bp
 from app.models import File, Task, Project # Импортируем модели
-# Формы пока не нужны, но можно импортировать, если понадобятся
-# from app.files.forms import ...
 
 # --- Загрузка Файла (Привязка к ЗАДАЧЕ) ---
 @bp.route('/upload/task/<int:task_id>', methods=['POST'])
@@ -135,7 +133,7 @@ def delete_file(file_id):
         if project.owner_id == current_user.id or file_record.user_id == current_user.id:
             can_delete = True
     elif file_record.user_id == current_user.id: # Если не привязан
-         can_delete = True # Возможно, такое не должно быть разрешено
+         can_delete = True 
 
     if not can_delete:
         abort(403)

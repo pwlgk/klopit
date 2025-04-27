@@ -26,15 +26,12 @@ class TaskPriority(enum.Enum):
 project_members = db.Table('project_members',
     db.Column('user_id', db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'), primary_key=True),
     db.Column('project_id', db.Integer, db.ForeignKey('project.id', ondelete='CASCADE'), primary_key=True)
-    # ondelete='CASCADE': если удаляется пользователь или проект, запись из этой таблицы тоже удаляется
 )
 
 
 class Role(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(64), unique=True, nullable=False) # Имя роли ('Admin', 'User')
-    # Опционально: разрешения, связанные с ролью (для более сложной системы)
-    # permissions = db.Column(db.Integer)
     users = db.relationship('User', backref='role', lazy='dynamic') # Связь с пользователями
 
     def __repr__(self):
@@ -73,17 +70,11 @@ class User(UserMixin, db.Model):
             if default_role:
                 self.role = default_role
             else:
-                # На случай, если роль 'User' еще не создана (хотя insert_roles должна помочь)
-                # Можно либо создать ее здесь, либо вызвать ошибку, либо оставить None
+        
                 print("WARNING: Default role 'User' not found for new user.")
                 pass # Оставляем None или можно назначить Admin, если это первый пользователь
 
-    # --- Остальные связи ---
     projects_owned = db.relationship('Project', backref='owner', lazy='dynamic', foreign_keys='Project.owner_id')
-    # --- Новая связь: Проекты, в которых пользователь УЧАСТВУЕТ ---
-    # secondary=project_members: указывает на таблицу связей
-    # back_populates='members': имя атрибута в модели Project для обратной связи
-    # lazy='dynamic': для возможности фильтрации/пагинации
     projects_member_of = db.relationship('Project', secondary=project_members,
                                          back_populates='members', lazy='dynamic')
     tasks_assigned = db.relationship('Task', backref='assignee', lazy='dynamic', foreign_keys='Task.assignee_id')
@@ -93,7 +84,6 @@ class User(UserMixin, db.Model):
     notifications = db.relationship('Notification', backref='recipient', lazy='dynamic',
                                     foreign_keys='Notification.user_id')
 
-    # ... (методы set_password, check_password, __repr__) ...
     def set_password(self, password):
         self.password_hash = bcrypt.generate_password_hash(password).decode('utf-8')
     def check_password(self, password):
@@ -108,7 +98,7 @@ class User(UserMixin, db.Model):
     def is_member_of(self, project):
         return self.projects_member_of.filter(project_members.c.project_id == project.id).count() > 0
 
-    # --- Новый метод: проверка, имеет ли доступ к проекту (владелец ИЛИ участник) ---
+    # ---  метод: проверка, имеет ли доступ к проекту (владелец ИЛИ участник) ---
     def can_access_project(self, project):
          return self.id == project.owner_id or self.is_member_of(project)
 
@@ -118,7 +108,6 @@ class User(UserMixin, db.Model):
 
 # --- Модель Project ---
 class Project(db.Model):
-    # ... (поля id, name, description, created_at, owner_id) ...
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(150), index=True, nullable=False)
     description = db.Column(db.Text, nullable=True)
@@ -129,7 +118,7 @@ class Project(db.Model):
     # --- Связи ---
     tasks = db.relationship('Task', backref='project', lazy='dynamic', cascade='all, delete-orphan', foreign_keys='Task.project_id')
     files = db.relationship('File', backref='project', lazy='dynamic', cascade='all, delete-orphan') # backref из File
-    # --- Новая связь: Участники проекта ---
+    # ---  связь: Участники проекта ---
     # back_populates='projects_member_of': имя атрибута в модели User
     members = db.relationship('User', secondary=project_members,
                               back_populates='projects_member_of', lazy='dynamic')
@@ -140,7 +129,6 @@ class Project(db.Model):
 
 # --- Модель Task ---
 class Task(db.Model):
-    # ... (поля id, title, description, status, priority, created_at, due_date, project_id, assignee_id, creator_id) ...
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(200), index=True, nullable=False)
     description = db.Column(db.Text, nullable=True)
@@ -154,7 +142,7 @@ class Task(db.Model):
 
     # --- Связи ---
     files = db.relationship('File', backref='task', lazy='dynamic', cascade='all, delete-orphan') # backref из File
-    # --- Новая связь с комментариями ---
+    # ---  связь с комментариями ---
     # cascade='all, delete-orphan': Комментарии удаляются вместе с задачей
     comments = db.relationship('Comment', backref='task', lazy='dynamic', cascade='all, delete-orphan')
 
@@ -164,7 +152,6 @@ class Task(db.Model):
 
 # --- Модель File ---
 class File(db.Model):
-    # ... (поля id, storage_filename, original_filename, uploaded_at, user_id, task_id, project_id) ...
     id = db.Column(db.Integer, primary_key=True)
     storage_filename = db.Column(db.String(300), unique=True, nullable=False)
     original_filename = db.Column(db.String(300), nullable=False)
@@ -173,7 +160,6 @@ class File(db.Model):
     task_id = db.Column(db.Integer, db.ForeignKey('task.id', ondelete='CASCADE'), nullable=True)
     project_id = db.Column(db.Integer, db.ForeignKey('project.id', ondelete='CASCADE'), nullable=True)
 
-    # ... (методы generate_storage_filename, filepath, is_allowed, __repr__) ...
     @staticmethod
     def generate_storage_filename(original_filename):
         _, ext = os.path.splitext(original_filename)
@@ -194,7 +180,7 @@ class File(db.Model):
         return f'<File {self.original_filename} (Stored: {self.storage_filename})>'
 
 
-# --- Новая Модель Комментария ---
+# ---  Модель Комментария ---
 class Comment(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     body = db.Column(db.Text, nullable=False) # Текст комментария
@@ -205,7 +191,6 @@ class Comment(db.Model):
     # ondelete='CASCADE': комментарий удаляется из БД при удалении задачи
     task_id = db.Column(db.Integer, db.ForeignKey('task.id', ondelete='CASCADE'), nullable=False)
 
-    # Связи (backrefs созданы в User и Task)
 
     def __repr__(self):
         return f'<Comment {self.id} by User {self.user_id} on Task {self.task_id}>'
@@ -226,7 +211,6 @@ class Notification(db.Model):
     # Ссылка на связанный объект (например, на задачу или проект)
     related_url = db.Column(db.String(500), nullable=True)
 
-    # Связь (backref='recipient' создан в User)
 
     def __repr__(self):
         return f'<Notification {self.id} for User {self.user_id}>'
