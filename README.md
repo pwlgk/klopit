@@ -103,28 +103,29 @@
 Подробные инструкции по развертыванию с использованием Nginx, Gunicorn, Systemd и PostgreSQL/SQLite находятся в отдельном файле или были предоставлены ранее. Основные шаги включают настройку сервера, базы данных, сервиса Systemd для Gunicorn и конфигурации Nginx в качестве обратного прокси, а также настройку HTTPS с Certbot.
 
 ## Структура Проекта
-
-klopit/
-├── app/ # Основной пакет приложения
-│ ├── init.py # Фабрика приложения
-│ ├── auth/ # Blueprint: Аутентификация
-│ ├── cli.py # Команды CLI
-│ ├── dashboard/ # Blueprint: Панель управления, Профиль, Админка
-│ ├── extensions.py # Экземпляры расширений Flask
-│ ├── files/ # Blueprint: Работа с файлами
-│ ├── main/ # Blueprint: Главная страница
-│ ├── models.py # Модели SQLAlchemy
-│ ├── projects/ # Blueprint: Проекты и Задачи
-│ ├── reports/ # Blueprint: Отчеты
-│ ├── static/ # Статические файлы (CSS, JS, Images)
-│ ├── templates/ # Шаблоны Jinja2 (включая includes/, email/)
-│ └── utils/ # Утилиты (декораторы, уведомления)
-├── migrations/ # Миграции Alembic
-├── uploads/ # Папка для загруженных файлов (ВНЕ папки app)
-├── venv/ # Виртуальное окружение
-├── config.py # Конфигурация
-├── run.py # Точка входа для flask run
-├── requirements.txt # Зависимости Python
-├── .env.example # Пример файла переменных окружения (создайте .env на его основе)
-├── .gitignore # Исключения для Git
-└── README.md # Этот файл
+```bash
+    klopit/
+    ├── app/ # Основной пакет приложения
+    │ ├── init.py # Фабрика приложения
+    │ ├── auth/ # Blueprint: Аутентификация
+    │ ├── cli.py # Команды CLI
+    │ ├── dashboard/ # Blueprint: Панель управления, Профиль, Админка
+    │ ├── extensions.py # Экземпляры расширений Flask
+    │ ├── files/ # Blueprint: Работа с файлами
+    │ ├── main/ # Blueprint: Главная страница
+    │ ├── models.py # Модели SQLAlchemy
+    │ ├── projects/ # Blueprint: Проекты и Задачи
+    │ ├── reports/ # Blueprint: Отчеты
+    │ ├── static/ # Статические файлы (CSS, JS, Images)
+    │ ├── templates/ # Шаблоны Jinja2 (включая includes/, email/)
+    │ └── utils/ # Утилиты (декораторы, уведомления)
+    ├── migrations/ # Миграции Alembic
+    ├── uploads/ # Папка для загруженных файлов (ВНЕ папки app)
+    ├── venv/ # Виртуальное окружение
+    ├── config.py # Конфигурация
+    ├── run.py # Точка входа для flask run
+    ├── requirements.txt # Зависимости Python
+    ├── .env.example # Пример файла переменных окружения (создайте .env на его основе)
+    ├── .gitignore # Исключения для Git
+    └── README.md # Этот файл
+```
